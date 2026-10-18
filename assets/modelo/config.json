@@ -1,0 +1,40 @@
+{
+  "versao": 1,
+  "modelo": "EfficientNetV2B0",
+  "dataset": "bracol",
+  "tamanho_entrada": 224,
+  "grade_gradcam": [
+    7,
+    7
+  ],
+  "temperatura": 1.538687,
+  "limiar_abstencao": 0.7,
+  "classes": [
+    {
+      "rotulo": "1_health",
+      "nome": "Saudável"
+    },
+    {
+      "rotulo": "2_miner",
+      "nome": "Bicho-mineiro"
+    },
+    {
+      "rotulo": "3_rust",
+      "nome": "Ferrugem"
+    },
+    {
+      "rotulo": "4_phoma",
+      "nome": "Phoma"
+    },
+    {
+      "rotulo": "5_cercospora",
+      "nome": "Cercosporiose"
+    }
+  ],
+  "metricas_teste": {
+    "acuracia": 0.9682,
+    "f1_macro": 0.9664,
+    "n_imagens": 409,
+    "latencia_ms_cpu": 37.8
+  }
+}
