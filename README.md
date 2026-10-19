@@ -6,8 +6,8 @@ e mostra **por que** chegou ao diagnóstico:
 | Método | Como é calculado no celular | Custo |
 |---|---|---|
 | **Grad-CAM** | Calculado dentro do próprio `.tflite` (derivada explícita da cabeça densa, ver `exportar_app.ipynb`), junto com a classificação, para todas as classes | 0 inferências extras |
-| **Fidelidade do Grad-CAM** (Inserção/Remoção, Petsiuk et al. 2018) | Mesmo procedimento do `mobilenet.ipynb`: revela/apaga as células do Grad-CAM em ordem e mede a probabilidade | 100 inferências |
-| **Oclusão** (Zeiler & Fergus 2014) | Cobre uma região 8×8 por vez com a foto borrada e mede a queda de probabilidade | 65 inferências |
+| **Fidelidade do Grad-CAM** (Inserção/Remoção, Petsiuk et al. 2018) | Substratos do RISE original: a inserção parte da foto borrada e revela as células do Grad-CAM em ordem; a remoção as pinta de preto | 100 inferências |
+| **Oclusão** (Zeiler & Fergus 2014) | Cobre uma região de uma grade 8×8 por vez com um quadrado cinza e mede a queda de probabilidade | 65 inferências |
 | **LIME** (Ribeiro et al. 2016) | Superpixels SLIC + 300 perturbações + Ridge ponderada (mesmos parâmetros do `lime_image` dos notebooks) | 300 inferências |
 
 A confiança exibida é **calibrada** (Temperature Scaling ajustado na validação). Abaixo do limiar de abstenção

@@ -42,8 +42,12 @@ MapaExplicacao gradCamDaClasse(Float32List gradcams, int classe, int altura, int
   );
 }
 
-/// Kernel do borrão usado como "imagem sem informação" (mesmo BLUR_KSIZE dos notebooks).
+/// Kernel do borrão que serve de ponto de partida da Inserção (mesmo BLUR_KSIZE dos notebooks).
 const tamanhoBorrao = 31;
+
+/// Cinza médio que cobre cada região na Oclusão (o quadrado cinza de Zeiler & Fergus, 2014). Um borrão não
+/// serve aqui: ele preserva cor e manchas grandes, e para ferrugem/cercosporiose a confiança nem caía.
+const cinzaOclusao = 127.5;
 
 // ── Sensibilidade à Oclusão (Zeiler & Fergus, 2014) ───────────────────────────────────────────────────────
 
@@ -57,7 +61,7 @@ class ResultadoOclusao {
   final double maiorQueda;
 }
 
-/// Cobre uma região de cada vez (com a versão borrada da própria foto) e mede quanto a probabilidade da
+/// Cobre uma região de cada vez com um quadrado cinza e mede quanto a probabilidade da
 /// [classe] cai. Só usa inferências -- funciona com qualquer modelo, inclusive quantizado.
 ResultadoOclusao oclusao(
   ExecutorModelo modelo,
@@ -67,7 +71,7 @@ ResultadoOclusao oclusao(
   Progresso? progresso,
 }) {
   final lado = modelo.lado;
-  final borrada = borrarGaussiano(entrada, lado, tamanhoBorrao);
+  final cinza = Float32List(entrada.length)..fillRange(0, entrada.length, cinzaOclusao);
   final pOriginal = modelo.probabilidades(entrada)[classe];
   final quedas = Float32List(grade * grade);
   final tamanhoCelula = lado / grade;
@@ -76,7 +80,7 @@ ResultadoOclusao oclusao(
   for (var cy = 0; cy < grade; cy++) {
     for (var cx = 0; cx < grade; cx++) {
       perturbada.setAll(0, entrada);
-      _copiarRegiao(perturbada, borrada, lado, (cx * tamanhoCelula).round(), (cy * tamanhoCelula).round(),
+      _copiarRegiao(perturbada, cinza, lado, (cx * tamanhoCelula).round(), (cy * tamanhoCelula).round(),
           ((cx + 1) * tamanhoCelula).round(), ((cy + 1) * tamanhoCelula).round());
       final p = modelo.probabilidades(perturbada)[classe];
       quedas[cy * grade + cx] = math.max(0, pOriginal - p);
@@ -105,8 +109,9 @@ class ResultadoFidelidade {
   double get score => aucInsercao - aucRemocao;
 }
 
-/// Mesmo procedimento de `curva_insercao_delecao` do mobilenet.ipynb: revela (inserção, a partir da foto
-/// borrada) ou apaga (remoção, a partir da original) as células do [mapa] da mais para a menos importante.
+/// Mesmo procedimento de `curva_insercao_delecao` do mobilenet.ipynb, com os substratos do RISE original:
+/// revela (inserção, a partir da foto borrada) ou pinta de PRETO (remoção, a partir da original) as células do
+/// [mapa] da mais para a menos importante.
 ResultadoFidelidade insercaoRemocao(
   ExecutorModelo modelo,
   Float32List entrada,
@@ -136,7 +141,7 @@ ResultadoFidelidade insercaoRemocao(
     return probs;
   }
 
-  return ResultadoFidelidade(curva(borrada, entrada), curva(entrada, borrada));
+  return ResultadoFidelidade(curva(borrada, entrada), curva(entrada, Float32List(entrada.length)));
 }
 
 // ── LIME por superpixels (Ribeiro et al., 2016) ──────────────────────────────────────────────────────────

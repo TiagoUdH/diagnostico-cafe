@@ -279,6 +279,15 @@ class _TelaResultadoState extends State<TelaResultado> {
                       Text('AUC Inserção: ${fid.aucInsercao.toStringAsFixed(3)} (maior é melhor)\n'
                           'AUC Remoção: ${fid.aucRemocao.toStringAsFixed(3)} (menor é melhor)\n'
                           'Score (Ins − Rem): ${fid.score.toStringAsFixed(3)}'),
+                      if (fid.curvaInsercao.first > 0.9) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'A foto borrada já é reconhecida com '
+                          '${(fid.curvaInsercao.first * 100).toStringAsFixed(0)}% — a doença é identificável pela '
+                          'cor, então a curva de Inserção não discrimina. Avalie pela Remoção.',
+                          style: tema.textTheme.bodySmall?.copyWith(color: tema.colorScheme.onSurfaceVariant),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -469,10 +478,11 @@ class _SobreMetodos extends StatelessWidget {
           Text(
             'Grad-CAM — usa os gradientes da última camada convolucional para mostrar onde o modelo '
             '"olhou" para decidir. Calculado junto com a classificação, sem custo extra.\n\n'
-            'Fidelidade (Inserção/Remoção) — testa se o Grad-CAM é confiável: revela/apaga a foto na ordem '
-            'do mapa e mede a probabilidade. Um mapa fiel faz a probabilidade subir rápido na inserção e cair '
-            'rápido na remoção.\n\n'
-            'Oclusão — cobre uma região de cada vez com a própria foto borrada; regiões quentes são as que, '
+            'Fidelidade (Inserção/Remoção) — testa se o Grad-CAM é confiável: na inserção, parte da foto '
+            'borrada e revela as regiões na ordem do mapa; na remoção, pinta essas regiões de preto. Um mapa '
+            'fiel faz a probabilidade subir rápido na inserção e cair rápido na remoção. Se a foto borrada já '
+            'dá ~100%, a doença é reconhecível pela cor e a inserção não discrimina.\n\n'
+            'Oclusão — cobre uma região de cada vez com um quadrado cinza; regiões quentes são as que, '
             'cobertas, mais derrubam a confiança. Não depende de gradientes.\n\n'
             'LIME — divide a folha em superpixels, apaga combinações aleatórias deles e ajusta um modelo linear '
             'local: verde ajuda a classe escolhida, vermelho pesa contra.\n\n'
